@@ -1,47 +1,55 @@
-import os
 import cv2
-import dlib
 import numpy as np
-import faiss
+import os
+import pickle
+from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
 
-sp = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat') 
-facerec = dlib.face_recognition_model_v1('dlib_face_recognition_resnet_model_v1.dat') 
-detector = dlib.get_frontal_face_detector()  
+face_cascade = cv2.CascadeClassifier('haarcascades/haarcascade_frontalface_default.xml')
+recognizer = cv2.face.LBPHFaceRecognizer_create()
 
-dimension = 128 
-index = faiss.IndexFlatL2(dimension)  
-face_labels = []  
+label_encoder = LabelEncoder()
 
 def get_face_embedding(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    faces = detector(gray, 1)
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
     if len(faces) == 0:
-        return None 
+        return None
 
-    shape = sp(image, faces[0])
+    x, y, w, h = faces[0]
+    face = gray[y:y+h, x:x+w]
+    label, confidence = recognizer.predict(face)
     
-    face_descriptor = facerec.compute_face_descriptor(image, shape)
-    
-    return np.array(face_descriptor)
+    return label, confidence
 
 def preprocess_dataset(dataset_folder='dataset'):
+    faces = []
+    labels = []
+    
     for file_name in os.listdir(dataset_folder):
         file_path = os.path.join(dataset_folder, file_name)
         image = cv2.imread(file_path)
+        
         if image is None:
             continue
 
-        embedding = get_face_embedding(image)
-        if embedding is not None:
-            face_labels.append(file_name) 
-            index.add(np.array([embedding]).astype(np.float32))  
+        label, _ = get_face_embedding(image)
+        if label is not None:
+            faces.append(label)
+            labels.append(file_name)
 
-def search_similar_face(query_embedding):
-    distances, indices = index.search(np.array([query_embedding]).astype(np.float32), 1)
-    closest_index = indices[0][0]
-    closest_label = face_labels[closest_index]
+    labels = label_encoder.fit_transform(labels)
+    recognizer.train(faces, np.array(labels))
+    recognizer.save('face_recognition_model.yml')
+
+def search_similar_face(query_image):
+    label, confidence = get_face_embedding(query_image)
     
-    return closest_label, distances[0][0]
+    if label is not None:
+        return label_encoder.inverse_transform([label])[0], confidence
+    else:
+        return "No face detected", None
+
+
 
