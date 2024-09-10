@@ -3,6 +3,9 @@ import cv2
 import numpy as np
 from face_recognition import get_face_embedding, search_similar_face
 
+from face_recognition import preprocess_dataset
+preprocess_dataset()
+
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
