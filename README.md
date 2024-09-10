@@ -3,17 +3,17 @@ model to recognition face
 
 required libraries:
 
- dlib
+    dlib
  
- flask
+    flask
  
- opencv-python
+    opencv-python
  
- faiss-cpu
+    faiss-cpu
  
- numpy
+    numpy
  
- scikit-learn
+    scikit-learn
  
 
 
