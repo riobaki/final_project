@@ -4,6 +4,9 @@ import dlib
 import numpy as np
 import faiss
 
+from face_recognition import preprocess_dataset
+preprocess_dataset()
+
 detector = dlib.get_frontal_face_detector()
 sp = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 facerec = dlib.face_recognition_model_v1('dlib_face_recognition_resnet_model_v1.dat')
