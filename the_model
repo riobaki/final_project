@@ -1,0 +1,9 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2 as cv
+from sklearn.datasets import fetch_lfw_people
+from facenet_pytorch import InceptionResnetV1, MTCNN
+import torch
+import faiss
+import gradio as gr
+from PIL import Image
