@@ -11,16 +11,11 @@ def upload_image():
         file = request.files['file']
         if file:
             image = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
-
-            query_embedding = get_face_embedding(image)
-
-            if query_embedding is not None:
-                closest_label, distance = search_similar_face(query_embedding)
-                return f"Closest match: {closest_label} with distance {distance:.2f}"
-            else:
-                return "No face detected. Try another image."
+            name, confidence = search_similar_face(image)
+            return f"Closest match: {name} with confidence {confidence:.2f}" if confidence is not None else "No face detected."
 
     return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
+
